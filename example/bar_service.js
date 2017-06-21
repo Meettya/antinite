@@ -8,37 +8,31 @@ Object.defineProperty(exports, "__esModule", {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-/*
- * Простой модуль логирования
- */
+// second service file aka 'bar_service'
 
-var Logger = function () {
-  function Logger(props) {
-    _classCallCheck(this, Logger);
+// MAY not to extend AntiniteService if NOT use 'require' section
+var BarService = function () {
+  function BarService(props) {
+    _classCallCheck(this, BarService);
   }
 
-  // пока это будет тут, позднее возможно перенесем в конфиг, но это не точно
-
-
-  _createClass(Logger, [{
-    key: 'getWorkerConfig',
-    value: function getWorkerConfig() {
+  _createClass(BarService, [{
+    key: 'getServiceConfig',
+    value: function getServiceConfig() {
       return {
         export: {
-          write: ['log']
+          read: ['getBar'] // this action will exported as 'read' type
         }
       };
     }
   }, {
-    key: 'log',
-    value: function log() {
-      var _console;
-
-      (_console = console).log.apply(_console, arguments);
+    key: 'getBar',
+    value: function getBar() {
+      return 'its bar';
     }
   }]);
 
-  return Logger;
+  return BarService;
 }();
 
-exports.default = Logger;
+exports.default = BarService;
