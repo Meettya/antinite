@@ -382,7 +382,9 @@ Set debugger log storage size.
 | system | group | other |
 
 'system' - access level for system calls (system call service 'Foo' at layer 'Bazz')
+
 'group' - access level for calls in some layer (service 'Foo' and 'Bar' at layer 'Bazz')
+
 'other' - access level for calls from other layers (service 'Foo' at layer 'Bazz' and service 'Qux' at layer 'Waldo')
 
 ### ACL example
