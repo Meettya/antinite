@@ -8,12 +8,15 @@ import Keeper from './plugins/keeper'
 const ANTINITE_SYSTEM_NAME = 'AntiniteSystem'
 const ANTINITE_SERVICE_EXECUTE_FN = Symbol('Antinite service execute function')
 
-let auditorProcess = new Keeper(),
-  debuggerProcess = new Keeper(),
-  reportsState = { 
-    isAuditEnabled: false, // shared by refs, instantly update
-    isDebuggEnabled: false
-  }
+let AntiniteAuditor, AntiniteDebugger
+let reportsState = {
+  isAuditEnabled: false, // shared by refs, instantly update
+  isDebuggEnabled: false
+}
+
+// helpers points
+let auditorProcess = new Keeper()
+let debuggerProcess = new Keeper()
 
 // common exchange point for all (in one process)
 let layersExchanger = {}
@@ -22,7 +25,7 @@ let layersExchanger = {}
  * Main lib
  */
 class Antinite {
-  constructor(layerName) {
+  constructor (layerName) {
     this.layerName = layerName
     this.layer = new Layer(layerName, {
       globalLookUp: this.globalLookUp.bind(this),
@@ -38,20 +41,20 @@ class Antinite {
    *
    * just proxy
    */
-  addWorkers(workersList) {
-    this.layer.addWorkers(workersList)
+  addServices (servicesList) {
+    this.layer.addWorkers(servicesList)
     return this
   }
 
   /*
    * Look up for all layers
-   */  
-  globalLookUp(callerLayer, callerName, serviceName, action){
+   */
+  globalLookUp (callerLayer, callerName, serviceName, action) {
     let res, layer
 
     Object.keys(layersExchanger).some((layerName) => {
       layer = layersExchanger[layerName]
-      if(layerName === this.layerName) {
+      if (layerName === this.layerName) {
         return
       }
       res = layer.serviceLookup(callerLayer, callerName, groupsLevel.other, serviceName, action)
@@ -66,12 +69,12 @@ class Antinite {
    *
    * if somewere dependencies pended
    */
-  pendingRestarter() {
+  pendingRestarter () {
     let layer
 
     Object.keys(layersExchanger).forEach((layerName) => {
       layer = layersExchanger[layerName]
-      if(layerName === this.layerName) {
+      if (layerName === this.layerName) {
         return
       }
       layer.repeatResolving()
@@ -81,8 +84,8 @@ class Antinite {
   /*
    * Process messages from layers and workers
    */
-  messagerProcessor(topic, message) {
-    switch(topic){
+  messagerProcessor (topic, message) {
+    switch (topic) {
       case 'auditor':
         auditorProcess.saveMessage(message)
         return
@@ -99,7 +102,7 @@ class Antinite {
  * System helper for `system` acess rights
  */
 class AntiniteSystem {
-  constructor(name){
+  constructor (name) {
     this.name = name
     this.grantedItem = {}
   }
@@ -107,24 +110,24 @@ class AntiniteSystem {
   /*
    * Execute command with `system` rights
    */
-  execute(layerName, serviceName, action, ...args){
-    let service,
-      layer = layersExchanger[layerName],
-      fullPath = this.getKeyForGrantedItems(layerName, serviceName, action),
-      grantedItem = this.grantedItem[fullPath]
+  execute (layerName, serviceName, action, ...args) {
+    let service
+    let layer = layersExchanger[layerName]
+    let fullPath = this.getKeyForGrantedItems(layerName, serviceName, action)
+    let grantedItem = this.grantedItem[fullPath]
 
     // shortcut for resolved early functions
-    if(grantedItem){
+    if (grantedItem) {
       return grantedItem.layer.executeAction(grantedItem.ticket, serviceName, action, ...args)
     }
-    if(!layer){
+    if (!layer) {
       throw Error(`unknown layer ${layer}`)
     }
-    if(!layer.isServiceRegistered(serviceName)){
+    if (!layer.isServiceRegistered(serviceName)) {
       throw Error(`unknown service ${serviceName} at layer ${layer} `)
     }
     service = layer.serviceLookup('system', this.getName(), groupsLevel.system, serviceName, action)
-    if(!service){
+    if (!service) {
       throw Error(`cant access action ${action} at service ${serviceName} at layer ${layer}`)
     }
     this.grantedItem[fullPath] = service
@@ -134,12 +137,12 @@ class AntiniteSystem {
   /*
    * Check ALL requres resolved in ALL layers
    */
-  ensureAllIsReady() {
+  ensureAllIsReady () {
     let layer
 
     Object.keys(layersExchanger).forEach((layerName) => {
       layer = layersExchanger[layerName]
-      if(!layer.isReady()) {
+      if (!layer.isReady()) {
         throw Error(`Layer '${layerName}' not ready, halt!`)
       }
     }, this)
@@ -148,7 +151,7 @@ class AntiniteSystem {
   /*
    * Return current system service name
    */
-  getName() {
+  getName () {
     if (this.name) {
       return this.name
     } else {
@@ -161,65 +164,8 @@ class AntiniteSystem {
    *
    * to speed up granted acess look up in flat dictionary
    */
-  getKeyForGrantedItems(layerName, serviceName, action) {
+  getKeyForGrantedItems (layerName, serviceName, action) {
     return `${layerName}|${serviceName}|${action}`
-  }
-}
-
-/*
- * Audit log manager
- */
-class AntiniteAuditor {
-  constructor(options) {
-  }
-
-  /*
-   * Audit enabler/disabler
-   */
-  setMode(isOn) {
-    reportsState.isAuditEnabled = isOn
-  }
-
-  /*
-   * Get audit data
-   */
-  getData() {
-    return auditorProcess.getMessages()
-  }
-
-  /*
-   * Setup audit log size
-   */
-  setLogSize(size) {
-    auditorProcess.setMaxStorageSize(size)
-  }
-}
-
-/*
- * Debug log manager
- */
-class AntiniteDebugger {
-  constructor(options) {
-  }
-  /*
-   * Debug enabler/disabler
-   */
-  setMode(isOn) {
-    reportsState.isDebuggEnabled = isOn
-  }
-
-  /*
-   * Get debugger data
-   */
-  getData() {
-    return debuggerProcess.getMessages()
-  }
-
-  /*
-   * Setup debugger log size
-   */
-  setLogSize(size) {
-    debuggerProcess.setMaxStorageSize(size)
   }
 }
 
@@ -229,7 +175,7 @@ class AntiniteDebugger {
  * (service MAY not inhered this while not use `require` block)
  */
 class AntiniteService {
-  constructor(options) {
+  constructor (options) {
     this[ANTINITE_SERVICE_EXECUTE_FN] = () => { throw Error('No look up function is set, cant call requered !') }
   }
 
@@ -238,18 +184,72 @@ class AntiniteService {
    *
    * to priocess request with requred service
    */
-  setExecuteFn(executeFn) {
+  setExecuteFn (executeFn) {
     this[ANTINITE_SERVICE_EXECUTE_FN] = executeFn
   }
 
   /*
    * Make request to requred service
    */
-  doRequireCall(service, action, ...args) {
+  doRequireCall (service, action, ...args) {
     return this[ANTINITE_SERVICE_EXECUTE_FN](service, action, ...args)
   }
-
 }
 
-export default Antinite
-export { AntiniteSystem, AntiniteService, AntiniteAuditor, AntiniteDebugger }
+/*
+ * Audit log point
+ *
+ * not a class, system wide
+ */
+AntiniteAuditor = {
+  /*
+   * Audit enabler/disabler
+   */
+  setMode: (isOn) => {
+    reportsState.isAuditEnabled = isOn
+  },
+
+  /*
+   * Get audit data
+   */
+  getData: () => {
+    return auditorProcess.getMessages()
+  },
+
+  /*
+   * Setup audit log size
+   */
+  setLogSize: (size) => {
+    auditorProcess.setMaxStorageSize(size)
+  }
+}
+
+/*
+ * Debug log point
+*
+ * not a class, system wide
+ */
+AntiniteDebugger = {
+  /*
+   * Debug enabler/disabler
+   */
+  setMode: (isOn) => {
+    reportsState.isDebuggEnabled = isOn
+  },
+
+  /*
+   * Get debugger data
+   */
+  getData: () => {
+    return debuggerProcess.getMessages()
+  },
+
+  /*
+   * Setup debugger log size
+   */
+  setLogSize: (size) => {
+    debuggerProcess.setMaxStorageSize(size)
+  }
+}
+
+export {Antinite as Layer, AntiniteSystem as System, AntiniteService as Service, AntiniteAuditor as Auditor, AntiniteDebugger as Debugger}

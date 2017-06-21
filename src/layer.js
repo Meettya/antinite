@@ -6,7 +6,7 @@ import groupsLevel from './groups_levels'
 import Worker from './worker'
 
 class Layer {
-  constructor(layerName, {globalLookUp, pendingRestarter, messagerBus, reportsState}){
+  constructor (layerName, {globalLookUp, pendingRestarter, messagerBus, reportsState}) {
     this.name = layerName
     this.globalLookUp = globalLookUp // global look up ref
     this.pendingRestarter = pendingRestarter // pending look up ref
@@ -17,14 +17,14 @@ class Layer {
     this.localLookUp = this.localLookUp.bind(this)
   }
 
-  getName() {
-    return this.name;
+  getName () {
+    return this.name
   }
 
   /*
    * Add some services to layer
    */
-  addWorkers(workersList) {
+  addWorkers (workersList) {
     if (!Array.isArray(workersList)) {
       throw TypeError('Workers list must be an Array, halt!')
     }
@@ -33,8 +33,8 @@ class Layer {
     this.repeatResolving()
     this.pendingRestarter()
     // for log sys
-    if (this.reportsState.isDebuggEnabled){
-      this.messagerBus('debugger', { message : `layer ${this.name} add workers done!` })
+    if (this.reportsState.isDebuggEnabled) {
+      this.messagerBus('debugger', { message: `OK: layer |${this.name}| add workers` })
     }
     return this
   }
@@ -42,12 +42,12 @@ class Layer {
   /*
    * Restart dependencies
    */
-  repeatResolving() {
+  repeatResolving () {
     let worker
 
     Object.keys(this.registeredWorkers).forEach((workerName) => {
       worker = this.registeredWorkers[workerName]
-      if(!worker.isReady()){
+      if (!worker.isReady()) {
         worker.doResolvePending()
       }
     }, this)
@@ -56,7 +56,7 @@ class Layer {
   /*
    * Add one service to layer
    */
-  addWorker(workerDesc) {
+  addWorker (workerDesc) {
     let currentWorker, workerName
 
     if (!(Reflect.has(workerDesc, 'name') && Reflect.has(workerDesc, 'service') && Reflect.has(workerDesc, 'acl'))) {
@@ -71,43 +71,43 @@ class Layer {
     currentWorker.prepareModule({layerName: this.getName()})
   }
 
-  localLookUp(callerName, serviceName, action) {
-    let res,
-      callerLayer = this.getName()
+  localLookUp (callerName, serviceName, action) {
+    let res
+    let callerLayer = this.getName()
 
     res = this.serviceLookup(callerLayer, callerName, groupsLevel.group, serviceName, action)
-    if(!res){
+    if (!res) {
       res = this.globalLookUp(callerLayer, callerName, serviceName, action)
     }
     return res
   }
 
-  isServiceRegistered(serviceName) {
+  isServiceRegistered (serviceName) {
     return !!this.registeredWorkers[serviceName]
   }
 
   /*
    * Local look up (at layer)
    */
-  serviceLookup(callerLayer, callerName, callerGroup, serviceName, action) {
-    let message,
-      ticket = { callerGroup, callerName, callerLayer},
-      service = this.registeredWorkers[serviceName]
+  serviceLookup (callerLayer, callerName, callerGroup, serviceName, action) {
+    let message
+    let ticket = { callerGroup, callerName, callerLayer }
+    let service = this.registeredWorkers[serviceName]
 
-    if(service) {
+    if (service) {
       message = (`for ${callerLayer}.${callerName} (group |${callerGroup}|) to ${this.getName()}.${serviceName}.${action} (mask ${service.getAcl()}, type |${service.getExportFnType(action)}|)`)
-      if (service.isActionGranted(callerGroup, action)){
+      if (service.isActionGranted(callerGroup, action)) {
         // for log sys
-        if (this.reportsState.isDebuggEnabled){
-          this.messagerBus('debugger', { message : `access granted ${message}`,  })
+        if (this.reportsState.isDebuggEnabled) {
+          this.messagerBus('debugger', { message: `OK: access granted ${message}` })
         }
         this.grantedTickets.add(ticket)
         // return ticket AND layer in duty to ASAP execution
-        return { ticket, layer : this }
+        return { ticket, layer: this }
       } else {
         // for log sys
-        if (this.reportsState.isDebuggEnabled){
-          this.messagerBus('debugger', { message : `access denied ${message}` })
+        if (this.reportsState.isDebuggEnabled) {
+          this.messagerBus('debugger', { message: `FAIL: access denied ${message}` })
         }
         console.warn(`-  (x) Access denied ${message}`)
       }
@@ -117,18 +117,18 @@ class Layer {
   /*
    * Execute action, if caller has valid ticket
    */
-  executeAction(ticket, serviceName, action, ...args) {
+  executeAction (ticket, serviceName, action, ...args) {
     let service = this.registeredWorkers[serviceName]
 
-    if(!this.grantedTickets.has(ticket)){
-      throw Error(`ticket not valid, access denied!`)
+    if (!this.grantedTickets.has(ticket)) {
+      throw Error('ticket not valid, access denied!')
     }
-    if(service){
-      if(!service.isReady()){
+    if (service) {
+      if (!service.isReady()) {
         throw Error(`service ${service.getName()} not ready, its on ${service.getStatus()} stage!`)
       }
       // for audit sys, only if it enabled to reduce load
-      if (this.reportsState.isAuditEnabled){
+      if (this.reportsState.isAuditEnabled) {
         this.messagerBus('auditor', this.getAuditMessage(ticket, serviceName, action, service, args))
       }
       return service.doExecute(action, ...args)
@@ -138,30 +138,34 @@ class Layer {
   /*
    * Prepare audit message
    */
-   getAuditMessage(ticket, serviceName, action, service, args){
+  getAuditMessage (ticket, serviceName, action, service, args) {
+    let callType = service.getExportFnType(action)
+    let layerName = this.getName()
+    let serviceAcl = service.getAcl()
+
     return {
-      message: `${ticket.callerLayer}.${ticket.callerName} (group |${ticket.callerGroup}|) call ${this.getName()}.${serviceName}.${action} (mask ${service.getAcl()}, type |${service.getExportFnType(action)}|)`,
-      type: 'execute',
+      message: `${ticket.callerLayer}.${ticket.callerName} (group |${ticket.callerGroup}|) call ${layerName}.${serviceName}.${action} (mask ${serviceAcl}, type |${callType}|)`,
+      operation: 'execute',
       caller: {
         layer: ticket.callerLayer,
         name: ticket.callerName,
         group: ticket.callerGroup
       },
       target: {
-        layer: this.getName(),
+        layer: layerName,
         name: serviceName,
         action: action,
-        mask: service.getAcl(),
-        type: service.getExportFnType(action)
+        mask: serviceAcl,
+        type: callType
       },
       args
     }
-   }
+  }
 
   /*
    * Report about whole layer ready
    */
-  isReady() {
+  isReady () {
     return Object.keys(this.registeredWorkers).every((workerName) => {
       return this.registeredWorkers[workerName].isReady()
     }, this)

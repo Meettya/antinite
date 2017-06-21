@@ -6,7 +6,7 @@
 const MAX_STORAGE_SIZE = 1024 // maximum size for REPRESENT result
 
 class Keeper {
-  constructor(maxStorageSize){
+  constructor (maxStorageSize) {
     this.maxStorageSize = maxStorageSize || MAX_STORAGE_SIZE // maximum size for REPRESENT result
     this.storage = [] // online storage
     this.archStorage = [] // archive storage extender
@@ -16,21 +16,21 @@ class Keeper {
   /*
    * Set maximum size for REPRESENT result
    */
-  setMaxStorageSize(maxStorageSize){
+  setMaxStorageSize (maxStorageSize) {
     this.maxStorageSize = maxStorageSize
   }
 
   /*
    * Save message
    */
-  saveMessage(message) {
+  saveMessage (message) {
     let currentSize
 
     // add internal fields
     message.id = this.getNewCount()
-    message.timestamp = + new Date()
+    message.timestamp = +new Date()
     currentSize = this.storage.push(message)
-    if(currentSize >= this.maxStorageSize){
+    if (currentSize >= this.maxStorageSize) {
       this.doRotateStorage()
     }
   }
@@ -38,7 +38,7 @@ class Keeper {
   /*
    * Return saved messages
    */
-  getMessages() {
+  getMessages () {
     let currentSize = this.storage.length
 
     return this.archStorage.slice(currentSize).concat(this.storage)
@@ -47,7 +47,7 @@ class Keeper {
   /*
    * Return max message id
    */
-  getLastId(){
+  getLastId () {
     return this.counter
   }
 
@@ -56,7 +56,7 @@ class Keeper {
    *
    * fast but memory cost
    */
-  doRotateStorage() {
+  doRotateStorage () {
     this.archStorage = this.storage
     this.storage = []
   }
@@ -64,10 +64,10 @@ class Keeper {
   /*
    * Return new (incremented) counter
    */
-   getNewCount() {
-    return this.counter += 1 
-   }
-
+  getNewCount () {
+    this.counter += 1
+    return this.counter
+  }
 }
 
 export default Keeper
