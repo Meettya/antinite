@@ -1,7 +1,7 @@
 {
   "name": "antinite",
   "version": "0.2.3",
-  "description": "An advanced Registry system with layers, ACL and request audit.",
+  "description": "Antinite is a zero dependency lightweight nano-services framework inside one node process.",
   "main": "./lib/index.js",
   "scripts": {
     "test": "mocha ./test/*-test.js",
@@ -12,7 +12,7 @@
     "acl",
     "registry"
   ],
-  "author": "",
+  "author": "Dmitrii Karpich <meettya@gmail.com>",
   "license": "MIT",
   "standard": {
     "parser": "babel-eslint"
