@@ -146,7 +146,7 @@ class FooService extends Service {
 }
 ```
 
-Services with dependencies from other services ( has 'require' block in `getServiceConfig`) MIST be extends Service.
+Services with dependencies from other services ( has 'require' block in `getServiceConfig`) MUST extend Service.
 
 #### Call required service
 
