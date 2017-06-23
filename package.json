@@ -1,6 +1,6 @@
 {
   "name": "antinite",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "Antinite is a zero dependency lightweight nano-services framework inside one node process.",
   "main": "./lib/index.js",
   "scripts": {
@@ -10,7 +10,27 @@
   },
   "keywords": [
     "acl",
-    "registry"
+    "registry",
+    "di",
+    "nano",
+    "nanoservice",
+    "nano-service",
+    "nanoservices",
+    "nano-services",
+    "nano service",
+    "nano services",
+    "micro",
+    "service",
+    "microservice",
+    "micro-service",
+    "microservices",
+    "micro-services",
+    "services",
+    "micro services",
+    "micro service",
+    "framework",
+    "minimum",
+    "toolkit"
   ],
   "author": "Dmitrii Karpich <meettya@gmail.com>",
   "license": "MIT",
@@ -30,5 +50,9 @@
   },
   "engines": {
     "node": ">=0.12.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Meettya/antinite.git"
   }
 }
