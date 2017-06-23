@@ -1,6 +1,6 @@
 {
   "name": "antinite",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "An advanced Registry system with layers, ACL and request audit.",
   "main": "./lib/index.js",
   "scripts": {
@@ -27,5 +27,8 @@
     "chai": "*",
     "mocha": "*",
     "standard": "^10.0.2"
+  },
+  "engines": {
+    "node": ">=0.12.7"
   }
 }
