@@ -1,4 +1,4 @@
-[![Join the chat at https://gitter.im/Meettya/antinite](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Meettya/antinite?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Dependency Status](https://david-dm.org/Meettya/antinite.svg)](https://david-dm.org/Meettya/antinite) [![JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
+[![Join the chat at https://gitter.im/Meettya/antinite](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Meettya/antinite?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://secure.travis-ci.org/Meettya/antinite.png)](http://travis-ci.org/Meettya/antinite) [![Dependency Status](https://david-dm.org/Meettya/antinite.svg)](https://david-dm.org/Meettya/antinite) [![JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 
 # antinite
 
@@ -21,7 +21,7 @@ Its will be necessary to have sort of [Seneca](http://senecajs.org/) or [Studio.
 
 ## Example:
 
-![Diagram](doc/antinite_diagram.png?raw=true)
+![Diagram](https://github.com/Meettya/antinite/blob/master/doc/antinite_diagram.png?raw=true)
 
 Short diagram to explain long code example
 
