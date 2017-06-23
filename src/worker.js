@@ -1,6 +1,8 @@
 /*
  * Worker class
  */
+import { has } from './helper'
+
 import groupsLevel from './groups_levels'
 
 // service lifecycle stages
@@ -138,11 +140,11 @@ class Worker {
     try {
       workerConfig = this.service.getServiceConfig()
     } catch (err) {
-      console.warn(`-  (x) Cant get config for ${layerName}.${this.name}, check it is class INSTANCE, not class itself!`)
+      console.warn(`-  (x) Cant get config for |${layerName}.${this.name}|, check it is VALID class INSTANCE, not class itself!`)
       throw Error(err)
     }
 
-    if (!Reflect.has(workerConfig, 'export')) {
+    if (!has(workerConfig, 'export')) {
       throw TypeError('Wrong worker configuration, halt!')
     }
   }
@@ -232,7 +234,7 @@ class Worker {
     let lookUpRes, funcsList
     let workerConfig = this.service.getServiceConfig()
 
-    if (!Reflect.has(workerConfig, 'require')) {
+    if (!has(workerConfig, 'require')) {
       return
     }
 
@@ -308,10 +310,10 @@ class Worker {
     let grantedItem
 
     if (!this.requireDict[serviceName]) {
-      throw Error(`Unknown service ${serviceName} called`)
+      throw Error(`Unknown service |${serviceName}| called`)
     }
     if (!this.requireDict[serviceName][action]) {
-      throw Error(`Unknown action ${action} at service ${serviceName} called`)
+      throw Error(`Unknown action |${serviceName}.${action}| called`)
     }
     grantedItem = this.requireDict[serviceName][action]
     return grantedItem.layer.executeAction(grantedItem.ticket, serviceName, action, ...args)
@@ -337,7 +339,7 @@ class Worker {
     Object.keys(workerConfig.export).forEach((level) => {
       funcs = workerConfig.export[level]
       if (!WORKER_EXPORT_LIVELS.has(level)) {
-        throw SyntaxError(`Unknown export level ${level}`)
+        throw SyntaxError(`Unknown export level |${level}|`)
       }
       funcs.forEach((funcName) => {
         result[funcName] = level
@@ -354,11 +356,18 @@ class Worker {
   }
 
   /*
+   * Check is action know by this service
+   */
+  isActionExists (action) {
+    return !!this.exportDict[action]
+  }
+
+  /*
    * Request proxy to service
    */
   doExecute (action, ...args) {
-    if (!Reflect.has(this.service, action)) {
-      throw Error(`service ${this.name} hasnt action ${action}`)
+    if (!has(this.service, action)) {
+      throw Error(`service |${this.name}| hasnt action |${action}|`)
     }
     return this.service[action](...args)
   }

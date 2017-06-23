@@ -1,6 +1,7 @@
 /*
  * Layer for services
  */
+import { has } from './helper'
 
 import groupsLevel from './groups_levels'
 import Worker from './worker'
@@ -59,14 +60,17 @@ class Layer {
   addWorker (workerDesc) {
     let currentWorker, workerName
 
-    if (!(Reflect.has(workerDesc, 'name') && Reflect.has(workerDesc, 'service') && Reflect.has(workerDesc, 'acl'))) {
+    if (!(has(workerDesc, 'name') && has(workerDesc, 'service') && has(workerDesc, 'acl'))) {
       throw TypeError('Wrong worker description, halt!')
     }
     currentWorker = new Worker(workerDesc)
+    workerName = currentWorker.getName()
+    if (this.registeredWorkers[workerName]) {
+      throw Error(`Service |${workerName}| already added, halt!`)
+    }
     currentWorker.setLookUp(this.localLookUp.bind(this))
     currentWorker.setMessagerBus(this.messagerBus)
     currentWorker.setReportsState(this.reportsState)
-    workerName = currentWorker.getName()
     this.registeredWorkers[workerName] = currentWorker
     currentWorker.prepareModule({layerName: this.getName()})
   }
@@ -105,11 +109,19 @@ class Layer {
         // return ticket AND layer in duty to ASAP execution
         return { ticket, layer: this }
       } else {
-        // for log sys
-        if (this.reportsState.isDebuggEnabled) {
-          this.messagerBus('debugger', { message: `FAIL: access denied ${message}` })
+        if (!service.isActionExists(action)) {
+          // for log sys
+          if (this.reportsState.isDebuggEnabled) {
+            this.messagerBus('debugger', { message: `FAIL: no action |${action}| at ${this.getName()}.${serviceName}` })
+          }
+          console.warn(`-  (x) No action |${action}| at ${this.getName()}.${serviceName}`)
+        } else {
+          // for log sys
+          if (this.reportsState.isDebuggEnabled) {
+            this.messagerBus('debugger', { message: `FAIL: access denied ${message}` })
+          }
+          console.warn(`-  (x) Access denied ${message}`)
         }
-        console.warn(`-  (x) Access denied ${message}`)
       }
     }
   }
@@ -125,7 +137,7 @@ class Layer {
     }
     if (service) {
       if (!service.isReady()) {
-        throw Error(`service ${service.getName()} not ready, its on ${service.getStatus()} stage!`)
+        throw Error(`service |${service.getName()}| not ready, its on |${service.getStatus()}| stage!`)
       }
       // for audit sys, only if it enabled to reduce load
       if (this.reportsState.isAuditEnabled) {
