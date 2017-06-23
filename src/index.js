@@ -8,7 +8,7 @@ import Keeper from './plugins/keeper'
 const ANTINITE_SYSTEM_NAME = 'AntiniteSystem'
 const ANTINITE_SERVICE_EXECUTE_FN = Symbol('Antinite service execute function')
 
-let AntiniteAuditor, AntiniteDebugger
+let AntiniteAuditor, AntiniteDebugger, AntiniteToolkit
 let reportsState = {
   isAuditEnabled: false, // shared by refs, instantly update
   isDebuggEnabled: false
@@ -26,6 +26,7 @@ let layersExchanger = {}
  */
 class Antinite {
   constructor (layerName) {
+    this.doCheckName(layerName)
     this.layerName = layerName
     this.layer = new Layer(layerName, {
       globalLookUp: this.globalLookUp.bind(this),
@@ -44,6 +45,23 @@ class Antinite {
   addServices (servicesList) {
     this.layer.addWorkers(servicesList)
     return this
+  }
+
+  /*
+   * Test layer name
+   *
+   * Not allowed undefined, empty or doubled names
+   */
+  doCheckName (layerName) {
+    if (layerName === undefined || layerName === null || layerName === '') {
+      throw Error('Layer must be named, halt!')
+    }
+    if (typeof layerName !== 'string') {
+      throw TypeError('Layer name must be a string')
+    }
+    if (layersExchanger[layerName]) {
+      throw Error(`Layer |${layerName}| already exists, doubles not allowed, halt!`)
+    }
   }
 
   /*
@@ -93,7 +111,7 @@ class Antinite {
         debuggerProcess.saveMessage(message)
         return
       default:
-        throw Error(`Topic ${topic} not in processing list!`)
+        throw Error(`Topic |${topic}| not in processing list!`)
     }
   }
 }
@@ -124,11 +142,11 @@ class AntiniteSystem {
       throw Error(`unknown layer ${layer}`)
     }
     if (!layer.isServiceRegistered(serviceName)) {
-      throw Error(`unknown service ${serviceName} at layer ${layer} `)
+      throw Error(`unknown service |${layer.getName()}.${serviceName}|`)
     }
     service = layer.serviceLookup('system', this.getName(), groupsLevel.system, serviceName, action)
     if (!service) {
-      throw Error(`cant access action ${action} at service ${serviceName} at layer ${layer}`)
+      throw Error(`cant access action |${layer.getName()}.${serviceName}.${action}|`)
     }
     this.grantedItem[fullPath] = service
     return layer.executeAction(service.ticket, serviceName, action, ...args)
@@ -143,7 +161,7 @@ class AntiniteSystem {
     Object.keys(layersExchanger).forEach((layerName) => {
       layer = layersExchanger[layerName]
       if (!layer.isReady()) {
-        throw Error(`Layer '${layerName}' not ready, halt!`)
+        throw Error(`Layer |${layerName}| not ready, halt!`)
       }
     }, this)
   }
@@ -226,7 +244,7 @@ AntiniteAuditor = {
 
 /*
  * Debug log point
-*
+ *
  * not a class, system wide
  */
 AntiniteDebugger = {
@@ -252,4 +270,28 @@ AntiniteDebugger = {
   }
 }
 
-export {Antinite as Layer, AntiniteSystem as System, AntiniteService as Service, AntiniteAuditor as Auditor, AntiniteDebugger as Debugger}
+/*
+ * Toolkit for tests only!!!
+ *
+ * DO NOT USE IT IN WORKING CODE
+ */
+AntiniteToolkit = {
+  /*
+   * Wipe all Antinite state
+   *
+   * !!!use it for test only!!!
+   * IMPORTANT - System cached 'execute' and if it not re-create - it may call dropped layers (it has link at granted access)
+   */
+  _WIPE_ALL_: () => {
+    // drop reports states
+    reportsState.isAuditEnabled = false
+    reportsState.isDebuggEnabled = false
+    // wipe loggers
+    auditorProcess = new Keeper()
+    debuggerProcess = new Keeper()
+    // drop all layers
+    layersExchanger = {}
+  }
+}
+
+export {Antinite as Layer, AntiniteSystem as System, AntiniteService as Service, AntiniteAuditor as Auditor, AntiniteDebugger as Debugger, AntiniteToolkit}
