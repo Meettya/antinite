@@ -1,0 +1,7 @@
+--compilers js:babel-core/register
+--require ./test/mocha_helper.js
+--recursive
+--reporter spec
+--colors
+--growl
+--ui bdd
