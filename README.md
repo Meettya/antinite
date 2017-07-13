@@ -14,6 +14,7 @@ Its will be necessary to have sort of [Seneca](http://senecajs.org/) or [Studio.
 * Services with explicit dependencies and exported function
 * Auto-resolving for all services dependencies
 * Services request audit on demand
+* Extract current system graph on demind
 
 ## Install:
 
@@ -134,7 +135,7 @@ console.log(res) // `here its bar and foo`
 
 ## Usage:
 
-Antinit framework consist of 3 main part - `Service`, `Layer` and `System` and 2 helpers - `Auditor` and `Debugger`.
+Antinit framework consist of 3 main part - `Service`, `Layer` and `System` and 3 helpers - `Auditor`, `Debugger` and `AntiniteToolkit`.
 
 ### Service
 
@@ -271,31 +272,31 @@ Get audit log.
 
 Example:
 
-```
-[ { message: 'system.mainSystem (group |system|) call service.FooService.doFoo (mask 711, type |execute|)',
-    operation: 'execute',
-    caller: { layer: 'system', name: 'mainSystem', group: 'system' },
-    target: 
-     { layer: 'service',
-       name: 'FooService',
-       action: 'doFoo',
-       mask: 711,
-       type: 'execute' },
-    args: [ 'here' ],
-    id: 1,
-    timestamp: 1498051547810 },
-  { message: 'service.FooService (group |other|) call shared.BarService.getBar (mask 764, type |read|)',
-    operation: 'execute',
-    caller: { layer: 'service', name: 'FooService', group: 'other' },
-    target: 
-     { layer: 'shared',
-       name: 'BarService',
-       action: 'getBar',
-       mask: 764,
-       type: 'read' },
-    args: [],
-    id: 2,
-    timestamp: 1498051547811 } ]
+```json
+[ { "message": "system.mainSystem (group |system|) call service.FooService.doFoo (mask 711, type |execute|)",
+    "operation": "execute",
+    "caller": { "layer": "system", "name": "mainSystem", "group": "system" },
+    "target": 
+     { "layer": "service",
+       "name": "FooService",
+       "action": "doFoo",
+       "mask": 711,
+       "type": "execute" },
+    "args": [ "here" ],
+    "id": 1,
+    "timestamp": 1498051547810 },
+  { "message": "service.FooService (group |other|) call shared.BarService.getBar (mask 764, type |read|)",
+    "operation": "execute",
+    "caller": { "layer": "service", "name": "FooService", "group": "other" },
+    "target": 
+     { "layer": "shared",
+       "name": "BarService",
+       "action": "getBar",
+       "mask": 764,
+       "type": "read" },
+    "args": [],
+    "id": 2,
+    "timestamp": 1498051547811 } ]
 ```
 
 #### Set audit log storage size
@@ -342,19 +343,19 @@ Get debug log.
 
 Example: 
 
-```
-[ { message: 'OK: layer |service| add workers',
-    id: 1,
-    timestamp: 1498054839189 },
-  { message: 'OK: access granted for service.FooService (group |other|) to shared.BarService.getBar (mask 764, type |read|)',
-    id: 2,
-    timestamp: 1498054839212 },
-  { message: 'OK: layer |shared| add workers',
-    id: 3,
-    timestamp: 1498054839212 },
-  { message: 'OK: access granted for system.mainSystem (group |system|) to service.FooService.doFoo (mask 711, type |execute|)',
-    id: 4,
-    timestamp: 1498054839213 } ]
+```json
+[ { "message": "OK: layer |service| add workers",
+    "id": 1,
+    "timestamp": 1498054839189 },
+  { "message": "OK: access granted for service.FooService (group |other|) to shared.BarService.getBar (mask 764, type |read|)",
+    "id": 2,
+    "timestamp": 1498054839212 },
+  { "message": "OK: layer |shared| add workers",
+    "id": 3,
+    "timestamp": 1498054839212 },
+  { "message": "OK: access granted for system.mainSystem (group |system|) to service.FooService.doFoo (mask 711, type |execute|)",
+    "id": 4,
+    "timestamp": 1498054839213 } ]
 ```
 
 #### Set debug log storage size
@@ -366,6 +367,83 @@ Debugger.setLogSize(512)
 Set debugger log storage size.
 
 **IMPORTANT!** Due to optimization enhancements this system-wide (in current node process) flag.
+
+### AntiniteToolkit
+
+#### Get toolkit pointer
+
+```javascript
+import { AntiniteToolkit } from antinite
+```
+
+This service part for develop and debug
+
+#### Get current system graph
+
+```javascript
+AntiniteToolkit.getSystemGraph()
+```
+
+Return current system graph like this
+
+```json
+[
+  {
+    "name": "shared",
+    "isReady": true,
+    "services": [
+      {
+        "name": "ConfigReader",
+        "isReady": true,
+        "acl": 751,
+        "export": {
+          "read": "execute",
+          "getStatus": "read"
+        },
+        "require": [
+          {
+            "name": "Logger",
+            "actions": {
+              "log": {
+                "isReady": true,
+                "resolved": "shared"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "Logger",
+        "isReady": true,
+        "acl": 762,
+        "export": {
+          "log": "write"
+        },
+        "require": []
+      }
+    ]
+  },
+  {
+    "name": "system",
+    "isReady": true,
+    "services": [
+      {
+        "name": "Auditor",
+        "isReady": true,
+        "acl": 744,
+        "export": {
+          "getData": "read"...
+        },
+        "require": []
+      }...
+    ]
+  }
+]
+```
+
+This data may be used to visualize system, see [online example](https://meettya.github.io/antinite-visual/index.html), created by [Antinite Visual Toolkit](https://github.com/Meettya/antinite-visual).
+
+Data structure is simply - layers (or domain) at top, then services and its configuration. The `isReady` flag indicate layer or service successfully resolve all requests. The `resolved` field at service require section point to layer, where action will be resolved.
 
 ## General Notes:
 
