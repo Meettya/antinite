@@ -4,10 +4,10 @@
 import util from 'util'
 import chai from 'chai'
 
-GLOBAL.should = chai.should()
-GLOBAL.expect = chai.expect // to work with 'undefined' - should cant it
-GLOBAL.assert = chai.assert
+global.should = chai.should()
+global.expect = chai.expect // to work with 'undefined' - should cant it
+global.assert = chai.assert
 
-GLOBAL.inspect = (item) => {
+global.inspect = (item) => {
   return util.inspect(item, true, null, true)
 }
