@@ -175,6 +175,13 @@ class Layer {
   }
 
   /*
+   * Return all services in layer
+   */
+  getServices() {
+    return this.registeredWorkers;
+  }
+
+  /*
    * Report about whole layer ready
    */
   isReady () {

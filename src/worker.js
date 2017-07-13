@@ -222,7 +222,7 @@ class Worker {
    * reverse dictionary
    */
   processPresenter () {
-    this.exportDict = this.getExportDict()
+    this.exportDict = this.processExportDict()
   }
 
   /*
@@ -331,7 +331,7 @@ class Worker {
    *
    * { functionName: type }
    */
-  getExportDict () {
+  processExportDict () {
     let funcs
     let result = {}
     let workerConfig = this.service.getServiceConfig()
@@ -360,6 +360,37 @@ class Worker {
    */
   isActionExists (action) {
     return !!this.exportDict[action]
+  }
+
+  /*
+   * Return export dict
+   */
+  getExportDict () {
+    return this.exportDict
+  }
+
+  getRequireDict () {
+    let actions, actionObj, resolved
+    let res = []
+
+    Object.keys(this.requireDict).forEach((serviceName) => {
+      actions = {}
+      Object.keys(this.requireDict[serviceName]).forEach((action) => {
+        actionObj = this.requireDict[serviceName][action]
+        if (actionObj) {
+          resolved = actionObj.layer.getName()
+        }
+        actions[action] = {
+          isReady: !!actionObj,
+          resolved
+        }
+      })
+      res.push({
+        name: serviceName,
+        actions
+      })
+    })
+    return res
   }
 
   /*

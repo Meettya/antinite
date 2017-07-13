@@ -4,6 +4,7 @@
 import Layer from './layer'
 import groupsLevel from './groups_levels'
 import Keeper from './plugins/keeper'
+import SystemGraph from './system_graph'
 
 const ANTINITE_SYSTEM_NAME = 'AntiniteSystem'
 const ANTINITE_SERVICE_EXECUTE_FN = Symbol('Antinite service execute function')
@@ -291,6 +292,15 @@ AntiniteToolkit = {
     debuggerProcess = new Keeper()
     // drop all layers
     layersExchanger = {}
+  },
+
+  /*
+   * Return all registered services properties
+   *
+   * Data for all layers for all services to visualise system components
+   */
+  getSystemGraph: () => {
+    return SystemGraph.getData(layersExchanger)
   }
 }
 
