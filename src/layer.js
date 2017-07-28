@@ -16,6 +16,7 @@ class Layer {
     this.registeredWorkers = {}
     this.grantedTickets = new WeakSet() // storage for granted tickets to services at resolving stage
     this.localLookUp = this.localLookUp.bind(this)
+    this.isLayerLegacy = false
   }
 
   getName () {
@@ -63,6 +64,7 @@ class Layer {
     if (!(has(workerDesc, 'name') && has(workerDesc, 'service') && has(workerDesc, 'acl'))) {
       throw TypeError('Wrong worker description, halt!')
     }
+    workerDesc.layerName = this.getName()
     currentWorker = new Worker(workerDesc)
     workerName = currentWorker.getName()
     if (this.registeredWorkers[workerName]) {
@@ -72,7 +74,7 @@ class Layer {
     currentWorker.setMessagerBus(this.messagerBus)
     currentWorker.setReportsState(this.reportsState)
     this.registeredWorkers[workerName] = currentWorker
-    currentWorker.prepareModule({layerName: this.getName()})
+    currentWorker.prepareModule()
   }
 
   localLookUp (callerName, serviceName, action) {
@@ -188,6 +190,20 @@ class Layer {
     return Object.keys(this.registeredWorkers).every((workerName) => {
       return this.registeredWorkers[workerName].isReady()
     }, this)
+  }
+
+  /*
+   * Mark layer as legacy
+   */
+  markAsLegacy () {
+    this.isLayerLegacy = true
+  }
+
+  /*
+   * Report about legacy status
+   */
+  isLegacy () {
+    return this.isLayerLegacy
   }
 }
 

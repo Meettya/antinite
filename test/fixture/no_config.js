@@ -3,9 +3,6 @@
  */
 
  class NoConfig {
-  constructor (props) {
-  }
-
   getBar () {
     return 'its bar'
   }

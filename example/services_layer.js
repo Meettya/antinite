@@ -19,5 +19,4 @@ var SERVICES = [// services list
 }];
 
 var layerObj = new _.Layer(LAYER_NAME); // register layer
-layerObj.addServices(SERVICES // fullfill with services
-);
+layerObj.addServices(SERVICES); // fullfill with services

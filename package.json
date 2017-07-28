@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha ./test/*-test.js",
     "build_lib": "./node_modules/.bin/babel src --out-dir lib",
-    "build_example": "./node_modules/.bin/babel example/src --out-dir example"
+    "build_example": "./node_modules/.bin/babel example/src --out-dir example",
+    "build_example2": "./node_modules/.bin/babel example2/src --out-dir example2/lib"
   },
   "keywords": [
     "acl",

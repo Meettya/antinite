@@ -18,10 +18,12 @@ const WORKERS_STATES = {
 const WORKER_EXPORT_LIVELS = new Set(['read', 'write', 'execute'])
 
 class Worker {
-  constructor ({name, service, acl}) {
+  constructor ({name, service, acl, isLegacy, layerName}) {
     this.name = name
     this.service = service
     this.acl = acl
+    this.isWorkerLegacy = !!isLegacy
+    this.layerName = layerName
     this.state = WORKERS_STATES.created
     this.exportDict = {}
     this.requireDict = {}
@@ -82,6 +84,13 @@ class Worker {
   }
 
   /*
+   * Return worker legacy status
+   */
+  isLegacy () {
+    return this.isWorkerLegacy
+  }
+
+  /*
    * Detect is action available for caller
    */
   isActionGranted (groupType, action) {
@@ -103,8 +112,8 @@ class Worker {
   /*
    * Worker prepare steps block
    */
-  prepareModule ({layerName}) {
-    this.checkService(layerName)
+  prepareModule () {
+    this.checkService()
     this.processPresenter()
     this.state = WORKERS_STATES.registered
     this.processRequires()
@@ -134,13 +143,13 @@ class Worker {
   /*
    * Check service configuratin is correct
    */
-  checkService (layerName) {
+  checkService () {
     let workerConfig
 
     try {
       workerConfig = this.service.getServiceConfig()
     } catch (err) {
-      console.warn(`-  (x) Cant get config for |${layerName}.${this.name}|, check it is VALID class INSTANCE, not class itself!`)
+      console.warn(`-  (x) Cant get config for |${this.layerName}.${this.name}|, check it is VALID class INSTANCE, not class itself!`)
       throw Error(err)
     }
 
@@ -294,13 +303,20 @@ class Worker {
    * Init worker server itself
    */
   processInit () {
-    // if worker not use require it may not have setExecuteFn
-    if (this.service.setExecuteFn) {
-      this.service.setExecuteFn(this.proxyUpcomingExecute)
-    }
+    this.injectDoRequire()
     // HACK simplify states
     this.state = WORKERS_STATES.ready
     return this
+  }
+
+  /*
+   * Inject doRequireCall to service
+   */
+  injectDoRequire () {
+    if (has(this.service, 'doRequireCall')) {
+      throw Error(`service |${this.layerName}.${this.name}| allready has reserved |doRequireCall|, halt!`)
+    }
+    this.service.doRequireCall = this.proxyUpcomingExecute
   }
 
   /*
