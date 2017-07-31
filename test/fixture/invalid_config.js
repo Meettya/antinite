@@ -3,9 +3,6 @@
  */
 
  class InvalidConfig {
-  constructor (props) {
-  }
-
   getServiceConfig () {
     return ({
       foo: {

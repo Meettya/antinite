@@ -1,12 +1,6 @@
 // first service file aka 'foo_service'
-import { Service } from '..'
 
-// MUST extend Antinit Service if service use 'require' section
-class FooService extends Service {
-  constructor (props) {
-    super(props)
-  }
-
+class FooService {
   getServiceConfig () { // IMPORTANT - convented function name for service config
     return ({
       require: {

@@ -14,7 +14,8 @@ Its will be necessary to have sort of [Seneca](http://senecajs.org/) or [Studio.
 * Services with explicit dependencies and exported function
 * Auto-resolving for all services dependencies
 * Services request audit on demand
-* Extract current system graph on demind
+* Extract current system graph on demand
+* Legacy helper for lazy refactoring
 
 ## Install:
 
@@ -28,14 +29,7 @@ Short diagram to explain long code example
 
 ```javascript
 // first service file aka 'foo_service'
-import { Service } from 'antinite'
-
-// MUST extend Antinit Service if service use 'require' section
-class FooService extends Service {
-  constructor (props) {
-    super(props)
-  }
-
+class FooService {
   getServiceConfig () { // IMPORTANT - convented function name for service config
     return ({
       require: {
@@ -73,17 +67,12 @@ const SERVICES = [ // services list
 ]
 
 let layerObj = new Layer(LAYER_NAME) // register layer
-layerObj.addServices(SERVICES) // fullfill with services
+layerObj.addServices(SERVICES) // fulfill with services
 ```
 
 ```javascript
 // second service file aka 'bar_service'
-
-// MAY not to extend AntiniteService if NOT use 'require' section
 class BarService {
-  constructor (props) {
-  }
-
   getServiceConfig () {
     return ({
       export: {
@@ -135,31 +124,13 @@ console.log(res) // `here its bar and foo`
 
 ## Usage:
 
-Antinit framework consist of 3 main part - `Service`, `Layer` and `System` and 3 helpers - `Auditor`, `Debugger` and `AntiniteToolkit`.
+Antinite framework has some main parts - `Layer` and `System` and some helpers - `Legacy`, `Auditor`, `Debugger` and `AntiniteToolkit`.
+
+Moreover antinite has **_service_** conception - any object, used in `Layer` as service, **MUST** declare configuration with `getServiceConfig` method and **MAY** use `this.doRequireCall()` to call other services - its will be injected at `Layer` init.
 
 ### Service
 
-```javascript
-import { Service } from 'antinite'
-
-class FooService extends Service {
-  ...
-}
-```
-
-Services with dependencies from other services ( has 'require' block in `getServiceConfig`) MUST extend Service.
-
-#### Call required service
-
-```javascript
-var res = this.doRequireCall(serviceName, actionName, ...args)
-```
-
-Service may call other services by serviceName and actionName pair with any arguments, if destination service allow access.
-
-**IMPORTANT!** Service may have 'group' or 'other' part of ACL in case of in same or in different layers with destination service is it.
-
-**IMPORTANT!** At auto resolving process Antinit do call to **first granted** service action (at different layers may be services with some name and different access rights)
+Antinite may use prepared object as **_service_** if it declare configuration. The are two reserved methods names `getServiceConfig` and `doRequireCall`.
 
 #### Declare configuration
 
@@ -178,7 +149,21 @@ getServiceConfig() {
 
 Service must declare public methods at 'export' part and used actions from another services in 'require' part.
 
+#### Call required service
+
+```javascript
+var res = this.doRequireCall(serviceName, actionName, ...args)
+```
+
+Service may call other services by _serviceName_ and _actionName_ pair with any arguments, if destination service allow access.
+
+**IMPORTANT!** Service may have 'group' or 'other' part of ACL in case of in same or in different layers with destination service is it.
+
+**IMPORTANT!** At auto resolving process Antinite do call to **first granted** service action (at different layers may be services with some name and different access rights)
+
 ### Layer
+
+Antinite use layers (or domains) to arrange same services and separate different.
 
 #### Create layer object
 
@@ -220,7 +205,7 @@ import { System } from 'antinite'
 let antiniteSys = new System('mainSystem')
 ```
 
-Create Antinit System object with own access level.
+Create Antinite System object with own access level.
 
 **IMPORTANT!** System ACL always is 'system' (first digit).
 
@@ -240,6 +225,53 @@ antiniteSys.ensureAllIsReady()
 
 Check all system (in current node process) to ensure all 'required' actions available (exists AND allowed to callers), otherwise throw an error.
 
+### Legacy
+
+To simplify legacy code refactoring to Antinite nano-services may be used `Legacy` helper
+
+#### Get Legacy helper pointer
+
+```javascript
+import { Legacy } from 'antinite'
+```
+
+`Legacy` helper join `Layer` and **_service_** at one place. Class must represent `getServiceConfig()` as ordinary **_service_** AND call to `Legacy.register()`, as `Layer` do it, for example at object constructor.
+
+```javascript
+class LegacyService {
+  constructor(props){
+    this.registerAsLegacy()
+  }
+
+  registerAsLegacy() {
+    Legacy.register(
+      {
+        layer: 'services',
+        name : 'LegacyService',
+        service: this,
+        acl: 777
+      }
+    )
+  }
+
+  getServiceConfig() {
+    return ({
+      require: {
+        Logger: ['log'],
+        ConfigReader:['read']
+      },
+      export: {
+        read: ['getStatus']
+      }
+    })
+  }
+```
+
+At result `services.LegacyService` was registered with `getStatus` exported function.
+
+**Limitations!** By design original `Layers` must be unique, therefore all `Layers` **MUST** be required **before** any legacy objects. 
+Nevertheless `Legacy` object will be added to original layers or will be create new and `Legacy` objects will be add until services names are unique.
+
 ### Auditor
 
 #### Get auditor pointer
@@ -248,7 +280,7 @@ Check all system (in current node process) to ensure all 'required' actions avai
 import { Auditor } from 'antinite'
 ```
 
-Get Antinit Auditor pointer, not a object - due to optimization enhancements this system-wide (in current node process) item. 
+Get Antinite Auditor pointer, not a object - due to optimization enhancements this system-wide (in current node process) item. 
 
 Its used to get inter-services interaction log. 
 
@@ -317,9 +349,9 @@ Set auditor log storage size.
 import { Debugger } from antinite
 ```
 
-Get Antinit Debugger pointer, not a object - due to optimization enhancements this system-wide (in current node process) item. 
+Get Antinite Debugger pointer, not a object - due to optimization enhancements this system-wide (in current node process) item. 
 
-Its used to get internal Antinit log to help maintenance services
+Its used to get internal Antinite log to help maintenance services
 
 #### Turn on/off debug
 

@@ -8,6 +8,7 @@ getServiceData = (serviceObj) => {
   return {
     name: serviceObj.getName(),
     isReady: serviceObj.isReady(),
+    isLegacy: serviceObj.isLegacy(),
     acl: serviceObj.getAcl(),
     export: serviceObj.getExportDict(),
     require: serviceObj.getRequireDict()
@@ -27,6 +28,7 @@ getLayerData = (layerObj) => {
   return {
     name: layerObj.getName(),
     isReady: layerObj.isReady(),
+    isLegacy: layerObj.isLegacy(),
     services: processServicesData(layerObj.getServices())
   }
 }

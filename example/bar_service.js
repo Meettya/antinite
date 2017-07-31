@@ -12,7 +12,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 // MAY not to extend AntiniteService if NOT use 'require' section
 var BarService = function () {
-  function BarService(props) {
+  function BarService() {
     _classCallCheck(this, BarService);
   }
 

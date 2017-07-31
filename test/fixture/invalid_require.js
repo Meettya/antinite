@@ -1,13 +1,7 @@
 /*
  * Invalid require 
  */
-import { Service } from '../..'
-
-class FooService extends Service {
-  constructor (props) {
-    super(props)
-  }
-
+class FooService {
   getServiceConfig () {
     return ({
       require: {

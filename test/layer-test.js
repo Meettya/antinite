@@ -86,16 +86,18 @@ describe('Layer', () => {
     })
     it('should add some name services to different layers', () => {
       let secondLayerInst = new Layer(LAYER_NAME2)
-      let services = [
-        {
-          name: 'BarService',
-          service: new BarService(),
-          acl: 711 
-        }
-      ]
+      let getServices = () => {
+        return ([
+          {
+            name: 'BarService',
+            service: new BarService(),
+            acl: 711 
+          }
+        ])
+      }
 
-      expect( () => {return layerInst.addServices(services)}).not.to.throw()
-      expect( () => {return secondLayerInst.addServices(services)}).not.to.throw()
+      expect( () => {return layerInst.addServices(getServices())}).not.to.throw()
+      expect( () => {return secondLayerInst.addServices(getServices())}).not.to.throw()
     })
     it('should add some services witn differents names to one layers', () => {
       let services = [

@@ -2,9 +2,6 @@
 
 // MAY not to extend AntiniteService if NOT use 'require' section
 class BarService {
-  constructor (props) {
-  }
-
   getServiceConfig () {
     return ({
       export: {

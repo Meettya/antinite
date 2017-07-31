@@ -1,7 +1,7 @@
 /*
  * Tests suite for Service
  */
-import { Service, Layer, System, AntiniteToolkit } from '..'
+import { Layer, System, AntiniteToolkit } from '..'
 
 import { initServiceLayer, initSharedLayer } from './layers_helper'
 
@@ -14,16 +14,7 @@ import InvalidRequire from './fixture/invalid_require'
 const LAYER_NAME = 'tested'
 
 describe('Service', () => {
-  describe('class', () => {
-    it('should be a class', () => {
-      return expect(Service).to.be.a('function')
-    })
-    it('should realize convicted contract', () => {
-      let serviceInst = new Service()
 
-      return expect(serviceInst).itself.to.respondTo('doRequireCall')
-    })
-  })
   describe('item', () => {
     let layerInst, systemInst
 

@@ -5,11 +5,11 @@ import Layer from './layer'
 import groupsLevel from './groups_levels'
 import Keeper from './plugins/keeper'
 import SystemGraph from './system_graph'
+import legacyHelper from './legacy_helper'
 
 const ANTINITE_SYSTEM_NAME = 'AntiniteSystem'
-const ANTINITE_SERVICE_EXECUTE_FN = Symbol('Antinite service execute function')
 
-let AntiniteAuditor, AntiniteDebugger, AntiniteToolkit
+let AntiniteAuditor, AntiniteDebugger, AntiniteToolkit, AntiniteLegacy
 let reportsState = {
   isAuditEnabled: false, // shared by refs, instantly update
   isDebuggEnabled: false
@@ -189,29 +189,26 @@ class AntiniteSystem {
 }
 
 /*
- * Base class for Antinit Services
+ * Legacy helper
  *
- * (service MAY not inhered this while not use `require` block)
+ * not a class, do not use at production
  */
-class AntiniteService {
-  constructor (options) {
-    this[ANTINITE_SERVICE_EXECUTE_FN] = () => { throw Error('No look up function is set, cant call requered !') }
-  }
-
+AntiniteLegacy = {
   /*
-   * Setup execution function ref
-   *
-   * to priocess request with requred service
+   * Register service
    */
-  setExecuteFn (executeFn) {
-    this[ANTINITE_SERVICE_EXECUTE_FN] = executeFn
-  }
-
-  /*
-   * Make request to requred service
-   */
-  doRequireCall (service, action, ...args) {
-    return this[ANTINITE_SERVICE_EXECUTE_FN](service, action, ...args)
+  register: (options) => {
+    // fast check options
+    legacyHelper.checkOptions(options)
+    if (!layersExchanger[options.layer]) {
+      debuggerProcess.saveMessage({message: `Create LEGACY layer |${options.layer}|`})
+      new Antinite(options.layer) // eslint-disable-line no-new
+      layersExchanger[options.layer].markAsLegacy()
+    }
+    debuggerProcess.saveMessage({message: `Add LEGACY service |${options.layer}.${options.name}|`})
+    // add legacy service
+    options.isLegacy = true
+    layersExchanger[options.layer].addWorkers([options])
   }
 }
 
@@ -304,4 +301,10 @@ AntiniteToolkit = {
   }
 }
 
-export {Antinite as Layer, AntiniteSystem as System, AntiniteService as Service, AntiniteAuditor as Auditor, AntiniteDebugger as Debugger, AntiniteToolkit}
+export {
+  Antinite as Layer,
+  AntiniteSystem as System,
+  AntiniteAuditor as Auditor,
+  AntiniteDebugger as Debugger,
+  AntiniteLegacy as Legacy,
+  AntiniteToolkit}
