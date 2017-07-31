@@ -200,9 +200,9 @@ AntiniteLegacy = {
   register: (options) => {
     // fast check options
     legacyHelper.checkOptions(options)
-    if(!layersExchanger[options.layer]){
+    if (!layersExchanger[options.layer]) {
       debuggerProcess.saveMessage({message: `Create LEGACY layer |${options.layer}|`})
-      new Antinite(options.layer)
+      new Antinite(options.layer) // eslint-disable-line no-new
       layersExchanger[options.layer].markAsLegacy()
     }
     debuggerProcess.saveMessage({message: `Add LEGACY service |${options.layer}.${options.name}|`})

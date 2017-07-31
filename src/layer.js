@@ -179,8 +179,8 @@ class Layer {
   /*
    * Return all services in layer
    */
-  getServices() {
-    return this.registeredWorkers;
+  getServices () {
+    return this.registeredWorkers
   }
 
   /*
