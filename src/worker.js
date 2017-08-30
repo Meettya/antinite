@@ -304,7 +304,8 @@ class Worker {
    */
   processInit () {
     this.injectDoRequire()
-    // HACK simplify states
+    this.state = WORKERS_STATES.inited
+    this.initWorker()
     this.state = WORKERS_STATES.ready
     return this
   }
@@ -333,6 +334,15 @@ class Worker {
     }
     grantedItem = this.requireDict[serviceName][action]
     return grantedItem.layer.executeAction(grantedItem.ticket, serviceName, action, ...args)
+  }
+
+  /*
+   * Sync init worker after all requeries resolved
+   */
+  initWorker () {
+    if (has(this.service, 'initService')) {
+      this.service.initService()
+    }
   }
 
   /*
