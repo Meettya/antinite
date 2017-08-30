@@ -13,6 +13,7 @@ Its will be necessary to have sort of [Seneca](http://senecajs.org/) or [Studio.
 * Layers (domains) to arrange services to logical groups
 * Services with explicit dependencies and exported function
 * Auto-resolving for all services dependencies
+* Available auto-init resolved services
 * Services request audit on demand
 * Extract current system graph on demand
 * Legacy helper for lazy refactoring
@@ -126,11 +127,11 @@ console.log(res) // `here its bar and foo`
 
 Antinite framework has some main parts - `Layer` and `System` and some helpers - `Legacy`, `Auditor`, `Debugger` and `AntiniteToolkit`.
 
-Moreover antinite has **_service_** conception - any object, used in `Layer` as service, **MUST** declare configuration with `getServiceConfig` method and **MAY** use `this.doRequireCall()` to call other services - its will be injected at `Layer` init.
+Moreover antinite has **_service_** conception - any object, used in `Layer` as service, **MUST** declare configuration with `getServiceConfig` method and **MAY** declare `initService` to initialise service after all requires will be resolved and **MAY** use `this.doRequireCall()` to call other services - its will be injected at `Layer` init.
 
 ### Service
 
-Antinite may use prepared object as **_service_** if it declare configuration. The are two reserved methods names `getServiceConfig` and `doRequireCall`.
+Antinite may use prepared object as **_service_** if it declare configuration. The are three reserved methods names `getServiceConfig`, `initService` and `doRequireCall`.
 
 #### Declare configuration
 
@@ -148,6 +149,27 @@ getServiceConfig() {
 ```
 
 Service must declare public methods at 'export' part and used actions from another services in 'require' part.
+
+#### Service initialization
+
+```javascript
+// at service class constructor
+constructor(){
+  this.storage = null // internal field of class
+}
+// and fill it when service resolve all requires
+initService() { // IMPORTANT - convented function name for service init
+  let bar = this.doRequireCall('BarService', 'getBar') // call to remote service, now its ready
+
+  this.storage = bar
+}
+```
+
+Service may declare `initService` method at class to automatic execute it when all requires will be resolved but before all system will be ready.
+
+**IMPORTANT!** do not change state of another services here, or hard to debug errors may accured here.
+
+**IMPORTANT!** only synchronous function supported
 
 #### Call required service
 
