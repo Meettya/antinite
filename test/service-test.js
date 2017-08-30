@@ -7,6 +7,7 @@ import { initServiceLayer, initSharedLayer } from './layers_helper'
 
 import BarService from '../example/bar_service'
 import FooService from '../example/foo_service'
+import BazService from '../example/baz_service'
 import NoConfig from './fixture/no_config'
 import InvalidConfig from './fixture/invalid_config'
 import InvalidRequire from './fixture/invalid_require'
@@ -132,5 +133,59 @@ describe('Service', () => {
       initSharedLayer()
       expect(() => { return systemInst.execute(LAYER_NAME, 'InvalidRequire', 'doFoo') }).to.throw()
     })
+  })
+
+   describe('.initService()', () => {
+    let layerInst, systemInst
+
+    beforeEach(() => {
+      systemInst = new System()
+      layerInst = new Layer(LAYER_NAME)
+    })
+    afterEach(() => {
+      // wipe all state on each test step
+      AntiniteToolkit._WIPE_ALL_()
+    })
+
+    it('should ignored if ommited', () => {
+      let services = [ 
+        {
+          name: 'BarService',
+          service: new BarService(),
+          acl: 711
+        }
+      ]
+
+      expect(() => { return layerInst.addServices(services) }).not.to.throw()
+    })
+    it('should executed if presented', () => {
+      let services = [ 
+        {
+          name: 'BarService',
+          service: new BarService(),
+          acl: 740
+        },
+        {
+          name: 'BazService',
+          service: new BazService(),
+          acl: 711
+        }
+      ]
+
+      expect(() => { return layerInst.addServices(services) }).not.to.throw()
+      expect(() => { return systemInst.execute(LAYER_NAME, 'BazService', 'doBaz') }).not.to.throw().and.eql('baz inited with its bar')
+   })
+    it('should not processed if not ready', () => {
+      let services = [ 
+        {
+          name: 'BazService',
+          service: new BazService(),
+          acl: 711
+        }
+      ]
+
+      expect(() => { return layerInst.addServices(services) }).not.to.throw()
+      expect(() => { return systemInst.execute(LAYER_NAME, 'BazService', 'doBaz') }).to.throw()
+   })
   })
 })
