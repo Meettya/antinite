@@ -1,0 +1,30 @@
+// service with .initService() aka 'baz_service'
+
+class BazService {
+  constructor(){
+    this.storage = null // internal field of class
+  }
+
+  getServiceConfig () { // IMPORTANT - convented function name for service config
+    return ({
+      require: {
+        BarService: ['getBar'] // this is external dependency
+      },
+      export: {
+        execute: ['doBaz'] // this action will exported as 'execute' type (all types - 'execute', 'write', 'read')
+      }
+    })
+  }
+
+  initService() { // IMPORTANT - convented function name for service init
+    let bar = this.doRequireCall('BarService', 'getBar') // call to remote service, convented function name
+
+    this.storage = bar
+  }
+
+  doBaz () { // use inited data
+    return `baz inited with ${this.storage}`
+  }
+}
+
+export default BazService
