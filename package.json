@@ -1,6 +1,6 @@
 {
   "name": "antinite",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "description": "Antinite is a zero dependency lightweight nano-services framework inside one node process.",
   "main": "./lib/index.js",
   "scripts": {
