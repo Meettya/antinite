@@ -241,10 +241,17 @@ class Worker {
    */
   processRequires () {
     let lookUpRes, funcsList
+    let isNeedInject = false
     let workerConfig = this.service.getServiceConfig()
 
     if (!has(workerConfig, 'require')) {
       return
+    }
+    // inspect service options
+    if (has(workerConfig, 'options')) {
+      if (has(workerConfig.options, 'injectRequire')) {
+        isNeedInject = !!workerConfig.options.injectRequire
+      }
     }
 
     Object.keys(workerConfig.require).forEach((service) => {
@@ -252,8 +259,17 @@ class Worker {
       if (!this.requireDict[service]) {
         this.requireDict[service] = {}
       }
+      if (isNeedInject) {
+        if (has(this.service, service)) {
+          throw Error(`service |${this.layerName}.${this.name}| allready has field |${service}|, cant inject, halt!`)
+        }
+        this.service[service] = {}
+      }
       funcsList.forEach((funcName) => {
         lookUpRes = this.lookUpFn(service, funcName)
+        if (isNeedInject) {
+          this.service[service][funcName] = this.proxyUpcomingExecute.bind(this, service, funcName)
+        }
         if (lookUpRes) {
           this.requireDict[service][funcName] = lookUpRes
         } else {
