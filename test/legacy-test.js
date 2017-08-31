@@ -68,7 +68,7 @@ describe('Legacy', () => {
       initSharedLayer()
       legacyObj = new LegacyService()
 
-      expect(legacyObj.doQuiz()).to.eql('legacy its bar and foo')
+      expect(legacyObj.doQuiz()).to.eql('legacy its bar and foo and its bar')
     })
     it('should throw on unready call other services', () => {
       let legacyObj = new LegacyService()

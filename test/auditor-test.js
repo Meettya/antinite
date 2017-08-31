@@ -18,7 +18,7 @@ describe('Auditor', () => {
       initServiceLayer()
       initSharedLayer()
       systemInst.execute('service', 'FooService', 'doFoo', 'here')
-      expect(Auditor.getData()).to.have.lengthOf(2)
+      expect(Auditor.getData()).to.have.lengthOf(3)
     })
     it('should disable log with "false"', () => {
       Auditor.setMode(false)
@@ -35,7 +35,7 @@ describe('Auditor', () => {
       initServiceLayer()
       initSharedLayer()
       systemInst.execute('service', 'FooService', 'doFoo', 'here')
-      expect(Auditor.getData()).to.have.lengthOf(2)
+      expect(Auditor.getData()).to.have.lengthOf(3)
     })
   })
 
