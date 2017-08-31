@@ -38,14 +38,20 @@ class FooService {
       },
       export: {
         execute: ['doFoo'] // this action will exported as 'execute' type (all types - 'execute', 'write', 'read')
+      },
+      options: { // options for service
+        injectRequire : true // inject require part to class itsels
       }
     })
   }
 
   doFoo (where) {
+    // always available require call 
     let bar = this.doRequireCall('BarService', 'getBar') // call to remote service, convented function name
+    // or with `options.injectRequire` = true
+    let bars = this.BarService.getBar()
 
-    return `${where} ${bar} and foo`
+    return `${where} ${bar} and foo and ${bars}`
   }
 }
 
@@ -120,7 +126,7 @@ import './shared_layer'
 let antiniteSys = new System('mainSystem') // create system object to access any exported actions (system do 'require *', kind of)
 let res = antiniteSys.execute('service', 'FooService', 'doFoo', 'here') // system may call any service (BUT only if service rights allow it)
 
-console.log(res) // `here its bar and foo`
+console.log(res) // `here its bar and foo and its bar`
 ```
 
 ## Usage:
@@ -143,12 +149,28 @@ getServiceConfig() {
     },
     export: {
       execute: ['doFoo']
+    },
+    options: {
+      injectRequire : true
     }
   })
 }
 ```
 
-Service must declare public methods at 'export' part and used actions from another services in 'require' part.
+Service must declare public methods at 'export' part and used actions from another services in 'require' part. 
+
+Its may be some options for service, `injectRequire` allow to call actions from another services as part of service class, for example:
+
+```javascript
+// without injection
+let one = this.doRequireCall('BarService', 'getBar', 2, 3)
+// with injection
+let two = this.BarService.getBar(2, 3)
+```
+
+Its looks better and represents smooth code.
+
+**IMPORTANT!** Injection throw error if object already have field with same name as required service.
 
 #### Service initialization
 
