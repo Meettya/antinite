@@ -90,6 +90,39 @@ describe('Service', () => {
       expect(() => { return layerInst.addServices(services) }).not.to.throw()
       expect(() => { return systemInst.execute('service', 'FooService', 'doFoo', 'here') }).not.to.throw()
     })
+
+    it('should execute injected action with resolved granted dependencies', () => {
+      let services = [ 
+        {
+          name: 'BazService',
+          service: new BazService(),
+          acl: 764
+        }
+      ]
+
+      initSharedLayer()
+      expect(() => { return layerInst.addServices(services) }).not.to.throw()
+      expect(() => { return systemInst.execute(LAYER_NAME, 'BazService', 'doInjected') }).not.to.throw().and.eql('injected its bar')
+
+    })
+
+    it('should throw on inject if field already defined', () => {
+      let services
+      let serviceObj = new BazService()
+
+      serviceObj.BarService = 'dummy'
+      services = [ 
+        {
+          name: 'BazService',
+          service: serviceObj,
+          acl: 764
+        }
+      ]
+
+      initSharedLayer()
+      expect(() => { return layerInst.addServices(services) }).to.throw()
+    })
+
     it('should throw on execute action with denied dependencies', () => {
       let services = [ 
         {
