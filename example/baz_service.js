@@ -26,7 +26,10 @@ var BazService = function () {
           BarService: ['getBar'] // this is external dependency
         },
         export: {
-          execute: ['doBaz'] // this action will exported as 'execute' type (all types - 'execute', 'write', 'read')
+          execute: ['doBaz', 'doInjected'] // this action will exported as 'execute' type (all types - 'execute', 'write', 'read')
+        },
+        options: { // options for service
+          injectRequire: true // inject require part to class itsels
         }
       };
     }
@@ -43,6 +46,13 @@ var BazService = function () {
     value: function doBaz() {
       // use inited data
       return 'baz inited with ' + this.storage;
+    }
+  }, {
+    key: 'doInjected',
+    value: function doInjected() {
+      var bar = this.BarService.getBar();
+
+      return 'injected ' + bar;
     }
   }]);
 

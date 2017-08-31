@@ -25,15 +25,21 @@ var FooService = function () {
         },
         export: {
           execute: ['doFoo'] // this action will exported as 'execute' type (all types - 'execute', 'write', 'read')
+        },
+        options: { // options for service
+          injectRequire: true // inject require part to class itsels
         }
       };
     }
   }, {
     key: 'doFoo',
     value: function doFoo(where) {
+      // always available require call 
       var bar = this.doRequireCall('BarService', 'getBar'); // call to remote service, convented function name
+      // or with `options.injectRequire` = true
+      var bars = this.BarService.getBar();
 
-      return where + ' ' + bar + ' and foo';
+      return where + ' ' + bar + ' and foo and ' + bars;
     }
   }]);
 

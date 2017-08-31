@@ -11,7 +11,10 @@ class BazService {
         BarService: ['getBar'] // this is external dependency
       },
       export: {
-        execute: ['doBaz'] // this action will exported as 'execute' type (all types - 'execute', 'write', 'read')
+        execute: ['doBaz', 'doInjected'] // this action will exported as 'execute' type (all types - 'execute', 'write', 'read')
+      },
+      options: { // options for service
+        injectRequire : true // inject require part to class itsels
       }
     })
   }
@@ -22,8 +25,14 @@ class BazService {
     this.storage = bar
   }
 
-  doBaz () { // use inited data
+  doBaz() { // use inited data
     return `baz inited with ${this.storage}`
+  }
+
+  doInjected() {
+    let bar = this.BarService.getBar()
+
+    return `injected ${bar}`
   }
 }
 
