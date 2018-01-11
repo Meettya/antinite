@@ -1,6 +1,6 @@
 {
   "name": "antinite",
-  "version": "0.3.5",
+  "version": "0.5.1",
   "description": "Antinite is a zero dependency lightweight nano-services framework inside one node process.",
   "main": "./lib/index.js",
   "scripts": {
@@ -41,10 +41,8 @@
   "devDependencies": {
     "babel-cli": "*",
     "babel-core": "^6.11.4",
-    "babel-eslint": "^7.2.3",
-    "babel-fast-presets": "0.0.2",
-    "babel-preset-es2015": "^6.9.0",
-    "babel-preset-stage-0": "^6.5.0",
+    "babel-eslint": "^8.2.1",
+    "babel-preset-env": "^1.6.1",
     "chai": "*",
     "mocha": "*",
     "standard": "^10.0.2"
