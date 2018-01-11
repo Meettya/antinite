@@ -168,6 +168,29 @@ class AntiniteSystem {
   }
 
   /*
+   * Return all unresolved
+   */
+  getUnreadyList () {
+    let layer, services, service
+    let result = []
+
+    Object.keys(layersExchanger).forEach((layerName) => {
+      layer = layersExchanger[layerName]
+      if (!layer.isReady()) {
+        services = layer.getServices()
+        Object.keys(services).forEach((serviceName) => {
+          service = services[serviceName]
+          if (!service.isReady()) {
+            result.push(`${layer.getName()}.${service.getName()} at ${JSON.stringify(service.requirePending)}`)
+          }
+        }, this)
+      }
+    }, this)
+
+    return result
+  }
+
+  /*
    * Return current system service name
    */
   getName () {

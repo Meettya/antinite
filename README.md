@@ -46,7 +46,7 @@ class FooService {
   }
 
   doFoo (where) {
-    // always available require call 
+    // always available require call
     let bar = this.doRequireCall('BarService', 'getBar') // call to remote service, convented function name
     // or with `options.injectRequire` = true
     let bars = this.BarService.getBar()
@@ -157,7 +157,7 @@ getServiceConfig() {
 }
 ```
 
-Service must declare public methods at 'export' part and used actions from another services in 'require' part. 
+Service must declare public methods at 'export' part and used actions from another services in 'require' part.
 
 Its may be some options for service, `injectRequire` allow to call actions from another services as part of service class, for example:
 
@@ -232,7 +232,7 @@ Services must be an array of object:
 [
   {
     name : 'FooService',
-    service : new FooService(), 
+    service : new FooService(),
     acl : 711
   },...
 ]
@@ -259,7 +259,7 @@ Create Antinite System object with own access level.
 let res = antiniteSys.execute(layerName, serviceName, actionName, ...args)
 ```
 
-Do call to service action in particular layer with any arguments 
+Do call to service action in particular layer with any arguments
 
 #### Сheck is system are ready
 
@@ -268,6 +268,14 @@ antiniteSys.ensureAllIsReady()
 ```
 
 Check all system (in current node process) to ensure all 'required' actions available (exists AND allowed to callers), otherwise throw an error.
+
+#### Get unready services list
+
+```javascript
+antiniteSys.getUnreadyList()
+```
+
+Return list of unready services. This method simplify unready service point. 
 
 ### Legacy
 
@@ -313,7 +321,7 @@ class LegacyService {
 
 At result `services.LegacyService` was registered with `getStatus` exported function.
 
-**Limitations!** By design original `Layers` must be unique, therefore all `Layers` **MUST** be required **before** any legacy objects. 
+**Limitations!** By design original `Layers` must be unique, therefore all `Layers` **MUST** be required **before** any legacy objects.
 Nevertheless `Legacy` object will be added to original layers or will be create new and `Legacy` objects will be add until services names are unique.
 
 ### Auditor
@@ -324,9 +332,9 @@ Nevertheless `Legacy` object will be added to original layers or will be create 
 import { Auditor } from 'antinite'
 ```
 
-Get Antinite Auditor pointer, not a object - due to optimization enhancements this system-wide (in current node process) item. 
+Get Antinite Auditor pointer, not a object - due to optimization enhancements this system-wide (in current node process) item.
 
-Its used to get inter-services interaction log. 
+Its used to get inter-services interaction log.
 
 #### Turn on/off audit
 
@@ -352,7 +360,7 @@ Example:
 [ { "message": "system.mainSystem (group |system|) call service.FooService.doFoo (mask 711, type |execute|)",
     "operation": "execute",
     "caller": { "layer": "system", "name": "mainSystem", "group": "system" },
-    "target": 
+    "target":
      { "layer": "service",
        "name": "FooService",
        "action": "doFoo",
@@ -364,7 +372,7 @@ Example:
   { "message": "service.FooService (group |other|) call shared.BarService.getBar (mask 764, type |read|)",
     "operation": "execute",
     "caller": { "layer": "service", "name": "FooService", "group": "other" },
-    "target": 
+    "target":
      { "layer": "shared",
        "name": "BarService",
        "action": "getBar",
@@ -393,7 +401,7 @@ Set auditor log storage size.
 import { Debugger } from antinite
 ```
 
-Get Antinite Debugger pointer, not a object - due to optimization enhancements this system-wide (in current node process) item. 
+Get Antinite Debugger pointer, not a object - due to optimization enhancements this system-wide (in current node process) item.
 
 Its used to get internal Antinite log to help maintenance services
 
@@ -417,7 +425,7 @@ Debugger.getData()
 
 Get debug log.
 
-Example: 
+Example:
 
 ```json
 [ { "message": "OK: layer |service| add workers",

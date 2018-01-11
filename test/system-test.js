@@ -43,6 +43,29 @@ describe('System', () => {
     })
   })
 
+  describe('.getUnreadyList()', () => {
+    let systemInst = new System()
+
+    afterEach(() => {
+      // wipe all state on each test step
+      AntiniteToolkit._WIPE_ALL_()
+    })
+
+    it('should return empty Array no dependencies layer', () => {
+      initSharedLayer()
+      expect(systemInst.getUnreadyList()).eql([])
+    })
+    it('should return empty Array on resolved dependencies layers', () => {
+      initServiceLayer()
+      initSharedLayer()
+      expect(systemInst.getUnreadyList()).eql([])
+    })
+     it('should return result if not resolved', () => {
+      initServiceLayer()
+      expect(systemInst.getUnreadyList()).not.eql([])
+    })
+  })
+
   describe('.execute()', () => {
     let systemInst = new System()
 
@@ -85,7 +108,7 @@ describe('System', () => {
 
       new Layer('deniedLayer').addServices(SERVICES)
       expect(() => { return systemInst.execute('deniedLayer', 'BarService', 'getBar') }).to.throw()
-      // return console.warn 
+      // return console.warn
       console.warn = thisConsole.warn
     })
   })
