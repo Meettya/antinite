@@ -3,5 +3,4 @@
 --recursive
 --reporter spec
 --colors
---growl
 --ui bdd
