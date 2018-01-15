@@ -11,6 +11,8 @@ import BazService from '../example/baz_service'
 import NoConfig from './fixture/no_config'
 import InvalidConfig from './fixture/invalid_config'
 import InvalidRequire from './fixture/invalid_require'
+import BazAcService from './fixture/baz_ac_service'
+import BazApService from './fixture/baz_ap_service'
 
 const LAYER_NAME = 'tested'
 
@@ -29,7 +31,7 @@ describe('Service', () => {
     })
 
     it('should process with valid config', () => {
-      let services = [ 
+      let services = [
         {
           name: 'BarService',
           service: new BarService(),
@@ -40,7 +42,7 @@ describe('Service', () => {
       expect(() => { return layerInst.addServices(services) }).not.to.throw()
     })
     it('should throw without config', () => {
-      let services = [ 
+      let services = [
         {
           name: 'NoConfig',
           service: new NoConfig(),
@@ -51,11 +53,11 @@ describe('Service', () => {
       let thisConsole = console
       console.warn = () => {}
       expect(() => { return layerInst.addServices(services) }).to.throw()
-      // return console.warn 
+      // return console.warn
       console.warn = thisConsole.warn
     })
     it('should throw with invalid config', () => {
-      let services = [ 
+      let services = [
         {
           name: 'InvalidConfig',
           service: new InvalidConfig(),
@@ -66,7 +68,7 @@ describe('Service', () => {
       expect(() => { return layerInst.addServices(services) }).to.throw()
     })
     it('should execute action without dependencies', () => {
-      let services = [ 
+      let services = [
         {
           name: 'BarService',
           service: new BarService(),
@@ -78,7 +80,7 @@ describe('Service', () => {
       expect(() => { return systemInst.execute(LAYER_NAME, 'BarService', 'getBar') }).not.to.throw()
     })
     it('should execute action with resolved granted dependencies', () => {
-      let services = [ 
+      let services = [
         {
           name: 'BarService',
           service: new BarService(),
@@ -92,7 +94,7 @@ describe('Service', () => {
     })
 
     it('should execute injected action with resolved granted dependencies', () => {
-      let services = [ 
+      let services = [
         {
           name: 'BazService',
           service: new BazService(),
@@ -111,7 +113,7 @@ describe('Service', () => {
       let serviceObj = new BazService()
 
       serviceObj.BarService = 'dummy'
-      services = [ 
+      services = [
         {
           name: 'BazService',
           service: serviceObj,
@@ -124,7 +126,7 @@ describe('Service', () => {
     })
 
     it('should throw on execute action with denied dependencies', () => {
-      let services = [ 
+      let services = [
         {
           name: 'BarService',
           service: new BarService(),
@@ -141,7 +143,7 @@ describe('Service', () => {
       expect(() => { return systemInst.execute('service', 'FooService', 'doFoo', 'here') }).to.throw()
     })
     it('should throw on execute action with invalid service request (not listed at "require")', () => {
-      let services = [ 
+      let services = [
         {
           name: 'InvalidRequire',
           service: new InvalidRequire(),
@@ -154,7 +156,7 @@ describe('Service', () => {
       expect(() => { return systemInst.execute(LAYER_NAME, 'InvalidRequire', 'doBaz', 'here') }).to.throw()
     })
     it('should throw on execute action with invalid action request (not listed at "require")', () => {
-      let services = [ 
+      let services = [
         {
           name: 'InvalidRequire',
           service: new InvalidRequire(),
@@ -168,7 +170,7 @@ describe('Service', () => {
     })
   })
 
-   describe('.initService()', () => {
+  describe.only('.initService()', () => {
     let layerInst, systemInst
 
     beforeEach(() => {
@@ -181,7 +183,7 @@ describe('Service', () => {
     })
 
     it('should ignored if ommited', () => {
-      let services = [ 
+      let services = [
         {
           name: 'BarService',
           service: new BarService(),
@@ -191,8 +193,8 @@ describe('Service', () => {
 
       expect(() => { return layerInst.addServices(services) }).not.to.throw()
     })
-    it('should executed if presented', () => {
-      let services = [ 
+    it('should executed if presented as synchronous', () => {
+      let services = [
         {
           name: 'BarService',
           service: new BarService(),
@@ -206,10 +208,76 @@ describe('Service', () => {
       ]
 
       expect(() => { return layerInst.addServices(services) }).not.to.throw()
-      expect(() => { return systemInst.execute(LAYER_NAME, 'BazService', 'doBaz') }).not.to.throw().and.eql('baz inited with its bar')
-   })
+      expect(() => { return systemInst.execute(LAYER_NAME, 'BazService', 'doBaz') }).not.to.throw()
+      systemInst.execute(LAYER_NAME, 'BazService', 'doBaz').should.eql('baz inited with its bar')
+    })
+    it('should executed if presented as asynchronous with callbacks', (done) => {
+      let services = [
+        {
+          name: 'BarService',
+          service: new BarService(),
+          acl: 740
+        },
+        {
+          name: 'BazAcService',
+          service: new BazAcService(),
+          acl: 711
+        }
+      ]
+
+      systemInst.onReady(() => {
+        expect(() => { return systemInst.execute(LAYER_NAME, 'BazAcService', 'doBaz') }).not.to.throw()
+        systemInst.execute(LAYER_NAME, 'BazAcService', 'doBaz').should.eql('baz inited with its bar')
+        done()
+      })
+      expect(() => { return layerInst.addServices(services) }).not.to.throw()
+    })
+    it('should executed if presented as asynchronous with callback in service and system promise', (done) => {
+      let services = [
+        {
+          name: 'BarService',
+          service: new BarService(),
+          acl: 740
+        },
+        {
+          name: 'BazAcService',
+          service: new BazAcService(),
+          acl: 711
+        }
+      ]
+
+      systemInst.onReady()
+        .then(() => {
+          expect(() => { return systemInst.execute(LAYER_NAME, 'BazAcService', 'doBaz') }).not.to.throw()
+          systemInst.execute(LAYER_NAME, 'BazAcService', 'doBaz').should.eql('baz inited with its bar')
+          done()
+        })
+      expect(() => { return layerInst.addServices(services) }).not.to.throw()
+    })
+    it('should executed if presented as asynchronous with promises', (done) => {
+      let services = [
+        {
+          name: 'BarService',
+          service: new BarService(),
+          acl: 740
+        },
+        {
+          name: 'BazApService',
+          service: new BazApService(),
+          acl: 711
+        }
+      ]
+
+      systemInst.onReady()
+        .then(() => {
+          expect(() => { return systemInst.execute(LAYER_NAME, 'BazApService', 'doBaz') }).not.to.throw()
+          systemInst.execute(LAYER_NAME, 'BazApService', 'doBaz').should.eql('baz inited with its bar')
+          done()
+        })
+      expect(() => { return layerInst.addServices(services) }).not.to.throw()
+    })
     it('should not processed if not ready', () => {
-      let services = [ 
+      let services = [
         {
           name: 'BazService',
           service: new BazService(),
