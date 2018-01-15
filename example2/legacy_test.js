@@ -27,22 +27,22 @@ console.log('>------ getSystemGraph')
 var antiniteSys = new AntiniteSystem('mainSystem');
 var auditAntiniteSys = new AntiniteSystem('auditSystem');
 
-// убеждаемся что все готово
-antiniteSys.ensureAllIsReady()
+antiniteSys.onReady()
+  .then(function () {
+    auditAntiniteSys.execute('system', 'Debugger', 'startDebug')
+    auditAntiniteSys.execute('system', 'Auditor', 'startAudit')
 
-auditAntiniteSys.execute('system', 'Debugger', 'startDebug')
-auditAntiniteSys.execute('system', 'Auditor', 'startAudit')
+    console.log('*test legacy obj may use antinit internal')
+    console.log(legacyObj.doQuiz('legacy'))
 
-console.log('*test legacy obj may use antinit internal')
-console.log(legacyObj.doQuiz('legacy'))
+    console.log('*test legacy obj register correct and may used at antinit')
+    console.log(antiniteSys.execute('services', 'LegacyService', 'getStatus'))
 
-console.log('*test legacy obj register correct and may used at antinit')
-console.log(antiniteSys.execute('services', 'LegacyService', 'getStatus'))
+    var auditData = auditAntiniteSys.execute('system', 'Auditor', 'getData')
+    console.log('=====auditData======')
+    console.log(auditData)
 
-var auditData = auditAntiniteSys.execute('system', 'Auditor', 'getData')
-console.log('=====auditData======')
-console.log(auditData)
-
-var debugData = auditAntiniteSys.execute('system', 'Debugger', 'getData')
-console.log('=====debugData======')
-console.log(debugData)
+    var debugData = auditAntiniteSys.execute('system', 'Debugger', 'getData')
+    console.log('=====debugData======')
+    console.log(debugData)
+  })

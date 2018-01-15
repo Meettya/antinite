@@ -17,6 +17,7 @@ Its will be necessary to have sort of [Seneca](http://senecajs.org/) or [Studio.
 * Services request audit on demand
 * Extract current system graph on demand
 * Legacy helper for lazy refactoring
+* Async service initialization
 
 ## Install:
 
@@ -124,9 +125,12 @@ import './services_layer'
 import './shared_layer'
 
 let antiniteSys = new System('mainSystem') // create system object to access any exported actions (system do 'require *', kind of)
-let res = antiniteSys.execute('service', 'FooService', 'doFoo', 'here') // system may call any service (BUT only if service rights allow it)
+antiniteSys.onReady()
+  .then(function() {
+    let res = antiniteSys.execute('service', 'FooService', 'doFoo', 'here') // system may call any service (BUT only if service rights allow it)
 
-console.log(res) // `here its bar and foo and its bar`
+    console.log(res) // `here its bar and foo and its bar`
+  })
 ```
 
 ## Usage:
@@ -187,11 +191,42 @@ initService() { // IMPORTANT - convented function name for service init
 }
 ```
 
+Also its available async `initService` as callback or promise
+
+```javascript
+initService(done) { // async callback-style
+  processDelayedOperation(() => {
+    done()
+  })
+}
+```
+
+```javascript
+initService() { // async promise-style
+  return processDelayedOperationAsPromise()
+}
+```
+
 Service may declare `initService` method at class to automatic execute it when all requires will be resolved but before all system will be ready.
 
 **IMPORTANT!** do not change state of another services here, or hard to debug errors may accured here.
 
-**IMPORTANT!** only synchronous function supported
+#### System startup
+
+```javascript
+let antiniteSys = new System('mainSystem') // create system object to access any exported actions (system do 'require *', kind of)
+
+antiniteSys.onReady()
+  .then(() => {
+    let res = antiniteSys.execute('service', 'FooService', 'doFoo', 'here') // f.e. general services start points
+
+    console.log(res)
+  })
+```
+
+Main System object may set `.onReady()` promise-style listener, or callback-style `.onReady(cb)`.
+
+ **IMPORTANT!** This async style strictly must be used if async `initService()` used! 
 
 #### Call required service
 
@@ -275,7 +310,7 @@ Check all system (in current node process) to ensure all 'required' actions avai
 antiniteSys.getUnreadyList()
 ```
 
-Return list of unready services. This method simplify unready service point. 
+Return list of unready services. This method simplify unready service point.
 
 ### Legacy
 

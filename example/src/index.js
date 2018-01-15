@@ -10,12 +10,16 @@ import './services_layer'
 import './shared_layer'
 
 let antiniteSys = new System('mainSystem') // create system object to access any exported actions (system do 'require *', kind of)
-let res = antiniteSys.execute('service', 'FooService', 'doFoo', 'here') // system may call any service (BUT only if service rights allow it)
 
-console.log(res) // `here its bar and foo and its bar`
+antiniteSys.onReady()
+  .then(() => {
+    let res = antiniteSys.execute('service', 'FooService', 'doFoo', 'here') // system may call any service (BUT only if service rights allow it)
 
-console.log('-Auditor data-')
-console.log(Auditor.getData())
+    console.log(res) // `here its bar and foo and its bar`
 
-console.log('-Debugger data-')
-console.log(Debugger.getData())
+    console.log('-Auditor data-')
+    console.log(Auditor.getData())
+
+    console.log('-Debugger data-')
+    console.log(Debugger.getData())
+  })

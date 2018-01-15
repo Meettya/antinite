@@ -1,15 +1,17 @@
 /*
  * Worker class
  */
-import { has } from './helper'
+import { has, isPromise } from './helper'
 
 import groupsLevel from './groups_levels'
 
 // service lifecycle stages
 const WORKERS_STATES = {
+  error: 'error',
   created: 'created',
   registered: 'registered',
   resolved: 'resolved',
+  init_await: 'init_await',
   inited: 'inited',
   ready: 'ready'
 }
@@ -117,8 +119,8 @@ class Worker {
     this.processPresenter()
     this.state = WORKERS_STATES.registered
     this.processRequires()
+    this.injectDoRequire()
     if (this.isRequireSolved()) {
-      this.state = WORKERS_STATES.resolved
       this.processInit()
     }
     return this
@@ -133,8 +135,8 @@ class Worker {
     if (!this.isRequireSolved()) {
       this.processPendingRequires()
     }
+    // YES, second test - may be requires resolved NOW, after first block
     if (this.isRequireSolved()) {
-      this.state = WORKERS_STATES.resolved
       this.processInit()
     }
     return this
@@ -319,10 +321,17 @@ class Worker {
    * Init worker server itself
    */
   processInit () {
-    this.injectDoRequire()
-    this.state = WORKERS_STATES.inited
-    this.initWorker()
-    this.state = WORKERS_STATES.ready
+    // if it start init - wait for it
+    if (!(this.state === WORKERS_STATES.init_await || this.state === WORKERS_STATES.inited || this.state === WORKERS_STATES.error || this.state === WORKERS_STATES.ready)) {
+      this.initWorker((err) => {
+        if (err) {
+          this.state = WORKERS_STATES.error
+          return
+        }
+        this.state = WORKERS_STATES.ready
+        this.messagerBus('ready', `${this.layerName}.${this.name}`)
+      })
+    }
     return this
   }
 
@@ -354,11 +363,49 @@ class Worker {
 
   /*
    * Sync init worker after all requeries resolved
+   *
+   * NB! initService may used as 1 - sync, 2 - async with callback, 3 - async with promise
    */
-  initWorker () {
+  initWorker (cb) {
+    let initResult
+
     if (has(this.service, 'initService')) {
-      this.service.initService()
+      // flag to init started (do not re-init)
+      this.state = WORKERS_STATES.init_await
+      // used callback
+      if (this.service.initService.length === 1) {
+        this.service.initService((err) => {
+          if (err) {
+            return cb(err)
+          }
+          this.state = WORKERS_STATES.inited
+          return cb()
+        })
+        return
+      }
+      // sync OR promise
+      try {
+        initResult = this.service.initService()
+      } catch (err) {
+        return cb(err)
+      }
+      // promise
+      if (isPromise(initResult)) {
+        initResult
+          .then(() => {
+            this.state = WORKERS_STATES.inited
+            cb()
+          })
+          .catch((err) => {
+            cb(err)
+          })
+        return
+      }
+      // sync
+      this.state = WORKERS_STATES.inited
+      return cb()
     }
+    cb()
   }
 
   /*

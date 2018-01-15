@@ -8,6 +8,7 @@ import SystemGraph from './system_graph'
 import legacyHelper from './legacy_helper'
 
 const ANTINITE_SYSTEM_NAME = 'AntiniteSystem'
+const READY_DELAY = 20 // ms, delay for 'ready' messages to trevent throttling
 
 let AntiniteAuditor, AntiniteDebugger, AntiniteToolkit, AntiniteLegacy
 let reportsState = {
@@ -21,6 +22,10 @@ let debuggerProcess = new Keeper()
 
 // common exchange point for all (in one process)
 let layersExchanger = {}
+// all system instances
+let systemInstances = []
+// ready timers - only for WIPE
+let timers = []
 
 /*
  * Main lib
@@ -36,6 +41,7 @@ class Antinite {
       reportsState
     })
     layersExchanger[layerName] = this.layer
+    this.readyAwaitFlag = false
   }
 
   /*
@@ -111,9 +117,44 @@ class Antinite {
       case 'debugger':
         debuggerProcess.saveMessage(message)
         return
+      case 'ready':
+        this.readyProcessor()
+        return
       default:
         throw Error(`Topic |${topic}| not in processing list!`)
     }
+  }
+
+  /*
+   * Set "ready" messages from async initService to queue
+   *
+   * we are need delay to prevent register flud
+   */
+  readyProcessor () {
+    if (!this.readyAwaitFlag) {
+      this.readyAwaitFlag = setTimeout(() => { this.awaitReadyProcessor() }, READY_DELAY)
+      timers.push(this.readyAwaitFlag)
+    }
+  }
+
+  /*
+   * Process "ready" messages from async initService functions
+   */
+  awaitReadyProcessor () {
+    let isReady = false
+
+    try {
+      AntiniteSystem.prototype.ensureAllIsReady()
+      isReady = true
+    } catch (err) {
+      // it normal, just ignore
+      // console.log(err)
+    }
+    // if all ready - inform system
+    if (isReady) {
+      AntiniteSystem.prototype.sendAllReadyEvent()
+    }
+    this.readyAwaitFlag = false
   }
 }
 
@@ -124,6 +165,27 @@ class AntiniteSystem {
   constructor (name) {
     this.name = name
     this.grantedItem = {}
+    this.onReadyFn = false
+    this.registerItselfAtList()
+  }
+
+  registerItselfAtList () {
+    systemInstances.push(this)
+  }
+
+  /*
+   * To wait 'ready' event
+   */
+  onReady (cb) {
+    if (cb) {
+      this.onReadyFn = cb
+      return
+    }
+    return new Promise((resolve) => {
+      this.onReadyFn = () => {
+        return resolve()
+      }
+    })
   }
 
   /*
@@ -164,7 +226,7 @@ class AntiniteSystem {
       if (!layer.isReady()) {
         throw Error(`Layer |${layerName}| not ready, halt!`)
       }
-    }, this)
+    })
   }
 
   /*
@@ -183,9 +245,9 @@ class AntiniteSystem {
           if (!service.isReady()) {
             result.push(`${layer.getName()}.${service.getName()} at ${JSON.stringify(service.requirePending)}`)
           }
-        }, this)
+        })
       }
-    }, this)
+    })
 
     return result
   }
@@ -208,6 +270,24 @@ class AntiniteSystem {
    */
   getKeyForGrantedItems (layerName, serviceName, action) {
     return `${layerName}|${serviceName}|${action}`
+  }
+
+  /*
+   * Inform all system instances
+   */
+  sendAllReadyEvent () {
+    systemInstances.forEach((elem) => {
+      elem.sendReadyEvent()
+    })
+  }
+
+  /*
+   * Inform instance is ready
+   */
+  sendReadyEvent () {
+    if (this.onReadyFn) {
+      this.onReadyFn()
+    }
   }
 }
 
@@ -312,6 +392,12 @@ AntiniteToolkit = {
     debuggerProcess = new Keeper()
     // drop all layers
     layersExchanger = {}
+    // drop all system
+    systemInstances = []
+    // clear all timers
+    timers.forEach((timer) => {
+      clearTimeout(timer)
+    })
   },
 
   /*

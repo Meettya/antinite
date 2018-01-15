@@ -1,6 +1,6 @@
 /*
  * Точка старта всего проекта
- * 
+ *
  * по факту - просто перечисление реализованных слоев сервисов
  */
 
@@ -44,9 +44,6 @@ console.log(ReaderState)
 
 auditAntiniteSys.execute('system', 'Auditor', 'startAudit')
 
-
-
-
 antiniteSys.execute('services', 'HttpConnector', 'open')
 antiniteSys.execute('services', 'HttpConnector', 'sendData', 'data to send')
 
@@ -59,4 +56,3 @@ console.log(auditData)
 var debugData = auditAntiniteSys.execute('system', 'Debugger', 'getData')
 console.log('=====debugData======')
 console.log(debugData)
-
