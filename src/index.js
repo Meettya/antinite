@@ -8,7 +8,7 @@ import SystemGraph from './system_graph'
 import legacyHelper from './legacy_helper'
 
 const ANTINITE_SYSTEM_NAME = 'AntiniteSystem'
-const READY_DELAY = 20 //ms, delay for 'ready' messages to trevent throttling
+const READY_DELAY = 20 // ms, delay for 'ready' messages to trevent throttling
 
 let AntiniteAuditor, AntiniteDebugger, AntiniteToolkit, AntiniteLegacy
 let reportsState = {
