@@ -170,7 +170,7 @@ describe('Service', () => {
     })
   })
 
-  describe.only('.initService()', () => {
+  describe('.initService()', () => {
     let layerInst, systemInst
 
     beforeEach(() => {
